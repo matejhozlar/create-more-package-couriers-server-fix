@@ -123,7 +123,8 @@ public class CardboardPlaneManager {
         if (!usable) return noTarget;
 
         if (!ServerConfig.planeCrossDimTransport && currentLevel.dimension() != target.getDim()) {
-            return Component.literal("Target is in another dimension");
+            return Component.translatableWithFallback(PackageCouriers.MOD_ID + ".message.target_other_dimension",
+                    "Target is in another dimension");
         }
         // TODO: ponder info if disabled cross dim transport
         Vec3 launchPos = SableCompat.toWorld(currentLevel, pos);
@@ -131,7 +132,8 @@ public class CardboardPlaneManager {
         if (maxDistance >= 0 && currentLevel.dimension() == target.getDim()) {
             double distance = target.getWorldPos(targetLevel).distanceTo(launchPos);
             if (distance > maxDistance) {
-                return Component.literal("Target is " + (int) Math.ceil(distance) + " blocks away, planes reach " + ServerConfig.planeMaxDistance);
+                return Component.translatableWithFallback(PackageCouriers.MOD_ID + ".message.target_too_far",
+                        "Target is %s blocks away, planes reach %s", (int) Math.ceil(distance), ServerConfig.planeMaxDistance);
             }
         }
 
