@@ -21,7 +21,7 @@ public class ServerConfig {
             .define("planeCrossDimTransport", true);
 
     private static final ModConfigSpec.IntValue PLANE_MAX_DISTANCE = BUILDER
-            .comment("maximum distance in blocks between a plane's launch point and its target, -1 for no limit (only checked within the same dimension)")
+            .comment("maximum distance in blocks between a plane's launch point and its target, -1 for no limit. Only checked within one dimension, so also set planeCrossDimTransport to false to make it a hard limit")
             .defineInRange("planeMaxDistance", -1, -1, Integer.MAX_VALUE);
 
     private static final ModConfigSpec.BooleanValue ANGLE_BRACKET_SHOP_ADDRESS_REPLACEMENT = BUILDER
