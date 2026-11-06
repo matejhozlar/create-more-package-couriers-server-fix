@@ -112,11 +112,20 @@ public class CardboardPlaneManager {
         // TODO: remove checks and just launch after implementing destination link.
         CourierTarget target = CourierTarget.getActiveTarget(address, playerOnly);
         if (target == null) return noTarget;
-        if (!ServerConfig.planeCrossDimTransport && currentLevel.dimension() != target.getDim())
-            return Component.literal("Target is in another dimension");
-        // TODO: ponder info if disabled cross dim transport
         Level targetLevel = server.getLevel(target.getDim());
         if (targetLevel == null) return noTarget;
+        BlockPos targetBlockPos = BlockPos.containing(target.getPos());
+        boolean usable = target.getType() == CourierTarget.Type.ENTITY
+                ? ServerConfig.planePlayerTargets
+                : ServerConfig.planeLocationTargets
+                && targetLevel.getBlockState(targetBlockPos).getBlock() instanceof CourierDestination dest
+                && dest.cmpc$hasSpace(targetLevel, targetBlockPos);
+        if (!usable) return noTarget;
+
+        if (!ServerConfig.planeCrossDimTransport && currentLevel.dimension() != target.getDim()) {
+            return Component.literal("Target is in another dimension");
+        }
+        // TODO: ponder info if disabled cross dim transport
         Vec3 launchPos = SableCompat.toWorld(currentLevel, pos);
         double maxDistance = ServerConfig.planeMaxDistance;
         if (maxDistance >= 0 && currentLevel.dimension() == target.getDim()) {
@@ -125,20 +134,14 @@ public class CardboardPlaneManager {
                 return Component.literal("Target is " + (int) Math.ceil(distance) + " blocks away, planes reach " + ServerConfig.planeMaxDistance);
             }
         }
-        BlockPos targetBlockPos = BlockPos.containing(target.getPos());
-        if ((target.getType() == CourierTarget.Type.ENTITY && ServerConfig.planePlayerTargets)
-                || (target.getType() == CourierTarget.Type.BLOCK
-                && ServerConfig.planeLocationTargets
-                && targetLevel.getBlockState(targetBlockPos).getBlock() instanceof CourierDestination dest
-                && dest.cmpc$hasSpace(targetLevel, targetBlockPos))) {
-            CardboardPlane plane = new CardboardPlane(currentLevel, target, box);
-            plane.setPos(launchPos);
-            plane.setRot(pitch, yaw);
-            plane.setDeltaMovement(SableCompat.directionToWorld(currentLevel, pos, plane.getDeltaMovement()));
-            plane.setUnpack(unpack);
-            INSTANCE.pairedPlanes.add(Pair.of(plane, null));
-            return null;
-        }
+
+        CardboardPlane plane = new CardboardPlane(currentLevel, target, box);
+        plane.setPos(launchPos);
+        plane.setRot(pitch, yaw);
+        plane.setDeltaMovement(SableCompat.directionToWorld(currentLevel, pos, plane.getDeltaMovement()));
+        plane.setUnpack(unpack);
+        INSTANCE.pairedPlanes.add(Pair.of(plane, null));
+        return null;
 
 //        if (target.getType() == CourierTarget.Type.BLOCK && ServerConfig.planeLocationTargets
 //                || target.getType() == CourierTarget.Type.ENTITY && ServerConfig.planePlayerTargets) {
@@ -150,6 +153,5 @@ public class CardboardPlaneManager {
 //            PackageCouriers.LOGGER.debug("added plane");
 //            return true;
 //        }
-        return noTarget;
     }
 }
