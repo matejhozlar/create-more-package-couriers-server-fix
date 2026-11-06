@@ -5,6 +5,7 @@ import com.kreidev.cmpackagecouriers.compat.sable.SableCompat;
 import com.simibubi.create.content.logistics.box.PackageItem;
 import net.createmod.catnip.data.Pair;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -15,6 +16,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
+import javax.annotation.Nullable;
 import java.util.Iterator;
 
 @SuppressWarnings({"UnusedReturnValue", "ConstantValue", "DataFlowIssue", "unused"})
@@ -77,10 +79,18 @@ public class CardboardPlaneManager {
      * @return false if plane failed to launch
      */
     public static boolean addPlane(Level currentLevel, Vec3 pos, float yaw, float pitch, ItemStack box, boolean unpack) {
-        if (!PackageItem.isPackage(box)) return false;
-        if (currentLevel.isClientSide()) return false;
+        return launchPlane(currentLevel, pos, yaw, pitch, box, unpack) == null;
+    }
+
+    /**
+     * @return null if the plane launched, otherwise the reason it did not, for the player who threw it
+     */
+    public static @Nullable Component launchPlane(Level currentLevel, Vec3 pos, float yaw, float pitch, ItemStack box, boolean unpack) {
+        Component noTarget = Component.translatable(PackageCouriers.MOD_ID + ".message.no_address");
+        if (!PackageItem.isPackage(box)) return noTarget;
+        if (currentLevel.isClientSide()) return noTarget;
         MinecraftServer server = currentLevel.getServer();
-        if (server == null) return false;
+        if (server == null) return noTarget;
 
         String address = PackageItem.getAddress(box);
 
@@ -101,15 +111,20 @@ public class CardboardPlaneManager {
 
         // TODO: remove checks and just launch after implementing destination link.
         CourierTarget target = CourierTarget.getActiveTarget(address, playerOnly);
-        if (target == null) return false;
-        if (!ServerConfig.planeCrossDimTransport && currentLevel.dimension() != target.getDim()) return false;
+        if (target == null) return noTarget;
+        if (!ServerConfig.planeCrossDimTransport && currentLevel.dimension() != target.getDim())
+            return Component.literal("Target is in another dimension");
         // TODO: ponder info if disabled cross dim transport
         Level targetLevel = server.getLevel(target.getDim());
-        if (targetLevel == null) return false;
+        if (targetLevel == null) return noTarget;
         Vec3 launchPos = SableCompat.toWorld(currentLevel, pos);
         double maxDistance = ServerConfig.planeMaxDistance;
-        if (maxDistance >= 0 && currentLevel.dimension() == target.getDim()
-                && target.getWorldPos(targetLevel).distanceToSqr(launchPos) > maxDistance * maxDistance) return false;
+        if (maxDistance >= 0 && currentLevel.dimension() == target.getDim()) {
+            double distance = target.getWorldPos(targetLevel).distanceTo(launchPos);
+            if (distance > maxDistance) {
+                return Component.literal("Target is " + (int) Math.ceil(distance) + " blocks away, planes reach " + ServerConfig.planeMaxDistance);
+            }
+        }
         BlockPos targetBlockPos = BlockPos.containing(target.getPos());
         if ((target.getType() == CourierTarget.Type.ENTITY && ServerConfig.planePlayerTargets)
                 || (target.getType() == CourierTarget.Type.BLOCK
@@ -122,7 +137,7 @@ public class CardboardPlaneManager {
             plane.setDeltaMovement(SableCompat.directionToWorld(currentLevel, pos, plane.getDeltaMovement()));
             plane.setUnpack(unpack);
             INSTANCE.pairedPlanes.add(Pair.of(plane, null));
-            return true;
+            return null;
         }
 
 //        if (target.getType() == CourierTarget.Type.BLOCK && ServerConfig.planeLocationTargets
@@ -135,6 +150,6 @@ public class CardboardPlaneManager {
 //            PackageCouriers.LOGGER.debug("added plane");
 //            return true;
 //        }
-        return false;
+        return noTarget;
     }
 }
