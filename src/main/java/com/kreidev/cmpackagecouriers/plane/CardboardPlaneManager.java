@@ -107,8 +107,9 @@ public class CardboardPlaneManager {
         Level targetLevel = server.getLevel(target.getDim());
         if (targetLevel == null) return false;
         Vec3 launchPos = SableCompat.toWorld(currentLevel, pos);
-        if (ServerConfig.planeMaxDistance >= 0 && currentLevel.dimension() == target.getDim()
-                && !target.getWorldPos(targetLevel).closerThan(launchPos, ServerConfig.planeMaxDistance)) return false;
+        double maxDistance = ServerConfig.planeMaxDistance;
+        if (maxDistance >= 0 && currentLevel.dimension() == target.getDim()
+                && target.getWorldPos(targetLevel).distanceToSqr(launchPos) > maxDistance * maxDistance) return false;
         BlockPos targetBlockPos = BlockPos.containing(target.getPos());
         if ((target.getType() == CourierTarget.Type.ENTITY && ServerConfig.planePlayerTargets)
                 || (target.getType() == CourierTarget.Type.BLOCK
