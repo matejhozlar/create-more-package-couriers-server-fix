@@ -1,6 +1,5 @@
 package com.kreidev.cmpackagecouriers.plane;
 
-import com.kreidev.cmpackagecouriers.PackageCouriers;
 import com.simibubi.create.content.logistics.box.PackageItem;
 import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
 import net.minecraft.ChatFormatting;
@@ -45,11 +44,11 @@ public class CardboardPlaneItem extends Item implements EjectorLaunchEffect {
                 && !level.isClientSide()) {
 
             Vec3 pos = player.getEyePosition().subtract(0, 0.1, 0);
-            boolean wasFired = this.fire(stack, level, pos, player.getYRot(), player.getXRot());
-            if (wasFired) {
+            Component failure = CardboardPlaneManager.launchPlane(level, pos, player.getYRot(), player.getXRot(), getPackage(stack), isPreOpened(stack));
+            if (failure == null) {
                 stack.shrink(1);
             } else {
-                player.displayClientMessage(Component.translatable(PackageCouriers.MOD_ID + ".message.no_address"), true);
+                player.displayClientMessage(failure, true);
             }
         }
     }
