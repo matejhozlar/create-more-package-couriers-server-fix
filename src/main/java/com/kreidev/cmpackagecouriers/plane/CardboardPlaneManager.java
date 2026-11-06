@@ -1,6 +1,7 @@
 package com.kreidev.cmpackagecouriers.plane;
 
 import com.kreidev.cmpackagecouriers.*;
+import com.kreidev.cmpackagecouriers.compat.sable.SableCompat;
 import com.simibubi.create.content.logistics.box.PackageItem;
 import net.createmod.catnip.data.Pair;
 import net.minecraft.core.BlockPos;
@@ -105,6 +106,7 @@ public class CardboardPlaneManager {
         // TODO: ponder info if disabled cross dim transport
         Level targetLevel = server.getLevel(target.getDim());
         if (targetLevel == null) return false;
+        Vec3 launchPos = SableCompat.toWorld(currentLevel, pos);
         BlockPos targetBlockPos = BlockPos.containing(target.getPos());
         if ((target.getType() == CourierTarget.Type.ENTITY && ServerConfig.planePlayerTargets)
                 || (target.getType() == CourierTarget.Type.BLOCK
@@ -112,8 +114,9 @@ public class CardboardPlaneManager {
                 && targetLevel.getBlockState(targetBlockPos).getBlock() instanceof CourierDestination dest
                 && dest.cmpc$hasSpace(targetLevel, targetBlockPos))) {
             CardboardPlane plane = new CardboardPlane(currentLevel, target, box);
-            plane.setPos(pos);
+            plane.setPos(launchPos);
             plane.setRot(pitch, yaw);
+            plane.setDeltaMovement(SableCompat.directionToWorld(currentLevel, pos, plane.getDeltaMovement()));
             plane.setUnpack(unpack);
             INSTANCE.pairedPlanes.add(Pair.of(plane, null));
             return true;

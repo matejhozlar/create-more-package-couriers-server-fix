@@ -83,22 +83,24 @@ public class CardboardPlane {
     public void tick(MinecraftServer server) {
         this.tickCount++;
 
+        Vec3 targetPos = target.getWorldPos(server.getLevel(target.getDim()));
+
         this.pos = this.pos.add(this.deltaMovement);
 
-        this.updateDelta();
+        this.updateDelta(targetPos);
 
-        if (this.tickCount > 120 && (!target.getPos().closerThan(pos, 80) || this.currentDim != target.getDim())) {
-            this.tpCloserToTarget();
+        if (this.tickCount > 120 && (!targetPos.closerThan(pos, 80) || this.currentDim != target.getDim())) {
+            this.tpCloserToTarget(targetPos);
         }
 
-        if (this.hasReachedTarget() || this.getTickCount() > LIFESPAN_TICKS) {
+        if (this.hasReachedTarget(targetPos) || this.getTickCount() > LIFESPAN_TICKS) {
             this.onReachedTarget(server);
             this.forRemoval = true;
         }
     }
 
-    public boolean hasReachedTarget() {
-        return target.getPos().closerThan(this.pos, 1.5);
+    public boolean hasReachedTarget(Vec3 targetPos) {
+        return targetPos.closerThan(this.pos, 1.5);
     }
 
     // NOTE: Potential issue, what happens if the destination is not loaded?
@@ -149,36 +151,36 @@ public class CardboardPlane {
         );
     }
 
-    private void updateDelta() {
+    private void updateDelta(Vec3 targetPos) {
         Vec3 vecFrom = this.getDeltaMovement().normalize();
         Vec3 vecTo;
         if (this.currentDim != target.getDim()) {  // Target not in the same dimension
             vecTo = this.getDeltaMovement().normalize();
         } else {
-            double xzDistance = Math.sqrt(Math.pow(target.getPos().x-this.pos.x, 2) + Math.pow(target.getPos().z-this.pos.z, 2));
+            double xzDistance = Math.sqrt(Math.pow(targetPos.x-this.pos.x, 2) + Math.pow(targetPos.z-this.pos.z, 2));
             Vec3 adjustedTargetPos = new Vec3(
-                    target.getPos().x,
-                    target.getPos().y + (xzDistance > 4 ? (xzDistance-4)/3 : 0),
-                    target.getPos().z
+                    targetPos.x,
+                    targetPos.y + (xzDistance > 4 ? (xzDistance-4)/3 : 0),
+                    targetPos.z
             );
             vecTo = adjustedTargetPos.subtract(this.pos).normalize();
         }
 
-        float augmentedDistance = (float)target.getPos().subtract(this.pos).length() + Math.max(0, 70 - this.tickCount);
+        float augmentedDistance = (float)targetPos.subtract(this.pos).length() + Math.max(0, 70 - this.tickCount);
         float clampedDistance = Mth.clamp(augmentedDistance, 5, 60);
         float curveAmount = Mth.lerp((clampedDistance - 5f) / 55f, 0.4f, 0.06f);
         this.setDeltaMovement(vecFrom.lerp(vecTo, curveAmount).normalize().scale(SPEED));
     }
 
-    public void tpCloserToTarget() {
-        Vec3 dirVec = this.pos.subtract(this.target.getPos()).normalize();
+    public void tpCloserToTarget(Vec3 targetPos) {
+        Vec3 dirVec = this.pos.subtract(targetPos).normalize();
 
         dirVec = new Vec3(dirVec.x(), 0.5, dirVec.z()).normalize();
-        Vec3 tpVec = target.getPos().add(dirVec.scale(60));
+        Vec3 tpVec = targetPos.add(dirVec.scale(60));
 
         this.currentDim = target.getDim();
         this.pos = tpVec;
-        this.setDeltaMovement(target.getPos().subtract(this.pos).normalize().scale(SPEED));
+        this.setDeltaMovement(targetPos.subtract(this.pos).normalize().scale(SPEED));
         this.hasTeleported = true;
     }
 
