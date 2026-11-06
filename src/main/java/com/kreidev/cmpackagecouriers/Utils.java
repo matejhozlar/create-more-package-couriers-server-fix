@@ -1,5 +1,6 @@
 package com.kreidev.cmpackagecouriers;
 
+import com.kreidev.cmpackagecouriers.compat.sable.SableCompat;
 import net.createmod.catnip.data.Iterate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -18,6 +19,10 @@ public class Utils {
 
     public static boolean isChunkTicking(Level level, BlockPos blockPos) {
         if (level instanceof ServerLevel serverLevel) {
+            // Sable plot chunks have no distance manager tickets, Sable answers isPositionTicking for them instead
+            if (SableCompat.isInPlot(level, blockPos)) {
+                return serverLevel.getChunkSource().isPositionTicking(ChunkPos.asLong(blockPos));
+            }
             return serverLevel.getChunkSource().chunkMap.getDistanceManager()
                     .inEntityTickingRange(ChunkPos.asLong(blockPos));
         }

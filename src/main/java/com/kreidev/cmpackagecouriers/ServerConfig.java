@@ -20,6 +20,10 @@ public class ServerConfig {
             .comment("allows/disables planes for transporting items to another dimension")
             .define("planeCrossDimTransport", true);
 
+    private static final ModConfigSpec.IntValue PLANE_MAX_DISTANCE = BUILDER
+            .comment("maximum distance in blocks between a plane's launch point and its target, -1 for no limit. Only checked within one dimension, so also set planeCrossDimTransport to false to make it a hard limit")
+            .defineInRange("planeMaxDistance", -1, -1, Integer.MAX_VALUE);
+
     private static final ModConfigSpec.BooleanValue ANGLE_BRACKET_SHOP_ADDRESS_REPLACEMENT = BUILDER
             .comment("enables integration with Create's Shop system that rewrites \"<>\" address to the ordering player's nick)")
             .define("enableShopAddressReplacement", true);  // TODO: rename to angleBracketShopAddressReplacement in next major version
@@ -33,6 +37,7 @@ public class ServerConfig {
     public static boolean planeLocationTargets;
     public static boolean planePlayerTargets;
     public static boolean planeCrossDimTransport;
+    public static int planeMaxDistance;
     public static boolean angleBracketAddressReplacement;
     public static boolean atSignAddressReplacement;
 
@@ -40,6 +45,7 @@ public class ServerConfig {
         planeLocationTargets = PLANE_LOCATION_TARGETS.get();
         planePlayerTargets = PLANE_PLAYER_TARGETS.get();
         planeCrossDimTransport = PLANE_CROSS_DIM_TRANSPORT.get();
+        planeMaxDistance = PLANE_MAX_DISTANCE.get();
         angleBracketAddressReplacement = ANGLE_BRACKET_SHOP_ADDRESS_REPLACEMENT.get();
         atSignAddressReplacement = AT_SIGN_SHOP_ADDRESS_REPLACEMENT.get();
     }

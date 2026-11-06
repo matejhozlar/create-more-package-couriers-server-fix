@@ -1,5 +1,6 @@
 package com.kreidev.cmpackagecouriers;
 
+import com.kreidev.cmpackagecouriers.compat.sable.SableCompat;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -97,6 +98,11 @@ public class CourierTarget {
     }
     public Vec3 getPos() {
         return this.pos;
+    }
+
+    public Vec3 getWorldPos(@Nullable Level level) {
+        if (this.type != Type.BLOCK || level == null) return this.pos;
+        return SableCompat.toWorld(level, this.pos);
     }
     public ResourceKey<Level> getDim() {
         return this.dim;

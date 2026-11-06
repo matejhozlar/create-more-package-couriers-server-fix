@@ -40,7 +40,7 @@ public class CuriosCompat {
                     @Override
                     public void curioTick(SlotContext slotContext, ItemStack stack) {
                         Entity entity = slotContext.entity();
-                        if (!entity.level().isClientSide()) return;
+                        if (entity.level().isClientSide()) return;
                         if (LocationTransmitterItem.isEnabled(stack)) {
                             CourierTarget.addOrUpdateTarget(new CourierTarget(entity.getName().getString(), entity));
                         }
