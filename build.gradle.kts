@@ -32,7 +32,7 @@ dependencies {
     implementation("com.tterrag.registrate:Registrate:${property("registrate_version")}")
 
     implementation(jarJar("ru.zznty:create_factory_abstractions-${property("minecraft_version")}:1.6.0")!!)
-    implementation(jarJar("dev.ryanhcode.sable-companion:sable-companion-common-${property("minecraft_version")}:[1.6.0,)") { version { prefer("1.6.0") } })
+    implementation(jarJar("dev.ryanhcode.sable-companion:sable-companion-common-${property("minecraft_version")}:[1.6.0,2.0.0)") { version { prefer("1.6.0") } })
     implementation("mezz.jei:jei-${property("minecraft_version")}-neoforge:${property("jei_version")}")
 
     compileOnly("curse.maven:create-more-pipe-bombs-in-packages-1304635:6755828")
